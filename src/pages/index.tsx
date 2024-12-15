@@ -5,6 +5,18 @@ import { createTodo, deleteTodo, toggleTodo, useTodos } from "../api";
 import styles from "../styles/Home.module.css";
 import { Todo } from "../types";
 
+// Mock-Login- und Registrierungsfunktionen
+const login = async (username: string, password: string) => {
+  // Hier sollte die tatsächliche Authentifizierungslogik implementiert werden
+  return username === "user" && password === "password";
+};
+
+const register = async (username: string, password: string) => {
+  // Hier sollte die tatsächliche Registrierungslogik implementiert werden
+  return true; // Annahme: Registrierung erfolgreich
+};
+
+// TodoList-Komponente: Ruft Todos ab und zeigt sie an
 export const TodoList: React.FC = () => {
   const { data: todos, error } = useTodos();
 
@@ -24,6 +36,7 @@ export const TodoList: React.FC = () => {
   );
 };
 
+// TodoItem-Komponente: Stellt ein einzelnes Todo-Element dar
 const TodoItem: React.FC<{ todo: Todo }> = ({ todo }) => (
   <li className={styles.todo}>
     <label
@@ -44,8 +57,13 @@ const TodoItem: React.FC<{ todo: Todo }> = ({ todo }) => (
   </li>
 );
 
-const AddTodoInput = () => {
+// AddTodoInput-Komponente: Formular zum Hinzufügen neuer Todos
+const AddTodoInput = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
   const [text, setText] = useState("");
+
+  if (!isLoggedIn) {
+    return <div className={styles.loginMessage}>Bitte loggen Sie sich ein, um Todos hinzuzufügen.</div>;
+  }
 
   return (
     <form
@@ -67,7 +85,73 @@ const AddTodoInput = () => {
   );
 };
 
+// Login-Komponente
+const Login = ({ onLogin }: { onLogin: (isLoggedIn: boolean) => void }) => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const isLoggedIn = await login(username, password);
+    onLogin(isLoggedIn);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className={styles.loginForm}>
+      <input
+        className={styles.input}
+        placeholder="Username"
+        value={username}
+        onChange={e => setUsername(e.target.value)}
+      />
+      <input
+        type="password"
+        className={styles.input}
+        placeholder="Password"
+        value={password}
+        onChange={e => setPassword(e.target.value)}
+      />
+      <button className={styles.loginButton}>Login</button>
+    </form>
+  );
+};
+
+// Register-Komponente
+const Register = ({ onRegister }: { onRegister: (isRegistered: boolean) => void }) => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const isRegistered = await register(username, password);
+    onRegister(isRegistered);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className={styles.registerForm}>
+      <input
+        className={styles.input}
+        placeholder="Username"
+        value={username}
+        onChange={e => setUsername(e.target.value)}
+      />
+      <input
+        type="password"
+        className={styles.input}
+        placeholder="Password"
+        value={password}
+        onChange={e => setPassword(e.target.value)}
+      />
+      <button className={styles.registerButton}>Register</button>
+    </form>
+  );
+};
+
+// Home-Komponente: Hauptkomponente der Seite
 const Home: NextPage = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
+
   return (
     <div className={styles.container}>
       <Head>
@@ -84,9 +168,23 @@ const Home: NextPage = () => {
       </header>
 
       <main className={styles.main}>
-        <AddTodoInput />
-
-        <TodoList />
+        {isLoggedIn ? (
+          <>
+            <AddTodoInput isLoggedIn={isLoggedIn} />
+            <TodoList />
+          </>
+        ) : isRegistering ? (
+          <Register onRegister={(isRegistered) => {
+            if (isRegistered) setIsRegistering(false);
+          }} />
+        ) : (
+          <>
+            <Login onLogin={setIsLoggedIn} />
+            <button onClick={() => setIsRegistering(true)} className={styles.switchButton}>
+              Register
+            </button>
+          </>
+        )}
       </main>
     </div>
   );
