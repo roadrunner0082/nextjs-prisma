@@ -5,15 +5,21 @@ import { createTodo, deleteTodo, toggleTodo, useTodos } from "../api";
 import styles from "../styles/Home.module.css";
 import { Todo } from "../types";
 
-// Mock-Login- und Registrierungsfunktionen
+// In-Memory-Benutzerspeicherung
+const users: { [key: string]: string } = {};
+
+// Login-Funktion
 const login = async (username: string, password: string) => {
-  // Hier sollte die tatsächliche Authentifizierungslogik implementiert werden
-  return username === "user" && password === "password";
+  return users[username] === password;
 };
 
+// Registrierungsfunktion
 const register = async (username: string, password: string) => {
-  // Hier sollte die tatsächliche Registrierungslogik implementiert werden
-  return true; // Annahme: Registrierung erfolgreich
+  if (users[username]) {
+    return false; // Benutzername bereits vergeben
+  }
+  users[username] = password;
+  return true; // Registrierung erfolgreich
 };
 
 // TodoList-Komponente: Ruft Todos ab und zeigt sie an
@@ -30,7 +36,7 @@ export const TodoList: React.FC = () => {
   return (
     <ul className={styles.todoList}>
       {todos.map(todo => (
-        <TodoItem todo={todo} />
+        <TodoItem key={todo.id} todo={todo} />
       ))}
     </ul>
   );
