@@ -12,7 +12,7 @@ export const TodoList: React.FC = () => {
   if (todos == null) return <div>Loading...</div>;
 
   if (todos.length === 0) {
-    return <div className={styles.emptyState}>Try adding a todo ☝️️</div>;
+    return <div className={styles.emptyState}>Schreib was rein! ☝️️</div>;
   }
 
   return (
